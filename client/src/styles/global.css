@@ -1,3 +1,90 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* SaveMyMeal - Global Styles */
+
+/* 1. Design tokens */
+:root {
+  font-family: "Inter", sans-serif;
+
+  color: #303a32;
+  background-color: #faf8f2;
+
+  --color-background: #faf8f2;
+  --color-surface: #ffffff;
+  --color-primary: #466653;
+  --color-primary-hover: #354f3f;
+  --color-sage: #e5ede3;
+  --color-accent: #c98263;
+  --color-text: #303a32;
+  --color-text-muted: #737a72;
+  --color-border: #e8e7df;
+
+  --radius-card: 16px;
+  --radius-button: 10px;
+
+  --shadow-soft: 0 4px 20px rgba(48, 58, 50, 0.06);
+}
+
+/* 2. Consistent sizing */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+
+  background-color: var(--color-background);
+  color: var(--color-text);
+
+  font-family: "Inter", sans-serif;
+  line-height: 1.6;
+}
+
+/* 3. Consistent links and buttons */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* 4. Accessible keyboard navigation */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+/* 5. Images */
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* 6. Main content container */
+.container {
+  width: min(1120px, calc(100% - 48px));
+  margin-inline: auto;
+}
+
+/* 7. Selection highlight */
+::selection {
+  background-color: var(--color-sage);
+  color: var(--color-text);
+}

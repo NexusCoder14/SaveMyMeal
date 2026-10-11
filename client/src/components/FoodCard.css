@@ -1,0 +1,150 @@
+/* 
+   FOOD CARD
+ */
+
+.food-card {
+  overflow: hidden;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+
+  background-color: var(--color-surface);
+
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.food-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-soft);
+}
+
+.food-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  padding: 18px 20px;
+
+  background-color: var(--color-sage);
+}
+
+.food-category,
+.food-status {
+  display: inline-flex;
+  align-items: center;
+
+  border-radius: 20px;
+
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.food-category {
+  color: var(--color-primary);
+}
+
+.food-status {
+  padding: 6px 10px;
+}
+
+.status-available {
+  background-color: #e0eee1;
+  color: #356746;
+}
+
+.status-unavailable {
+  background-color: #f3e6e1;
+  color: #985c4b;
+}
+
+.food-card-content {
+  padding: 22px 20px;
+}
+
+.food-card-content h3 {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 23px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.food-description {
+  min-height: 48px;
+  margin: 10px 0 20px;
+
+  color: var(--color-text-muted);
+
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.food-card-details {
+  display: grid;
+  gap: 16px;
+
+  margin-bottom: 22px;
+}
+
+.food-card-details > p {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  margin: 0;
+
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.food-card-details > p > span:first-child {
+  flex-shrink: 0;
+}
+
+.food-card-details strong {
+  display: block;
+  margin-bottom: 2px;
+
+  color: var(--color-text);
+  font-size: 11px;
+}
+
+/* Details button */
+
+.food-card-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  width: 100%;
+  padding: 13px 15px;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 650;
+
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+.food-card-button:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-sage);
+}
+
+.food-card-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
