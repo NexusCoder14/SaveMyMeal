@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { getListingById } from "../services/listingService";
+import { createReservation } from "../services/reservationService";
 import "./FoodDetails.css";
+
+const DEMO_USER_NAME = "Demo User";
 
 const sampleFoods = [
   {
@@ -88,6 +91,10 @@ export default function FoodDetails({ foodId }) {
   const [isLoading, setIsLoading] = useState(true);
   const [usingSampleData, setUsingSampleData] = useState(false);
   const [error, setError] = useState("");
+  const [reservationQuantity, setReservationQuantity] = useState("1");
+  const [isReserving, setIsReserving] = useState(false);
+  const [reservationMessage, setReservationMessage] = useState("");
+  const [reservationError, setReservationError] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -103,6 +110,9 @@ export default function FoodDetails({ foodId }) {
 
         if (isMounted) {
           setFood(listing);
+          setReservationQuantity("1");
+          setReservationMessage("");
+          setReservationError("");
         }
       } catch (err) {
         const sampleFood = sampleFoods.find(
@@ -113,6 +123,9 @@ export default function FoodDetails({ foodId }) {
           if (sampleFood) {
             setFood(sampleFood);
             setUsingSampleData(true);
+            setReservationQuantity("1");
+            setReservationMessage("");
+            setReservationError("");
           } else {
             setError(
               "We couldn't load this listing from the backend. Please try again when the service is available."
@@ -168,6 +181,64 @@ export default function FoodDetails({ foodId }) {
   const isAvailable =
     Number(availableQuantity) > 0 &&
     !["Unavailable", "Collected", "Reserved"].includes(food.status);
+  const numericAvailableQuantity = Number(availableQuantity);
+  const numericReservationQuantity = Number(reservationQuantity);
+  const isReservationQuantityValid =
+    Number.isInteger(numericReservationQuantity) &&
+    numericReservationQuantity > 0 &&
+    numericReservationQuantity <= numericAvailableQuantity;
+
+  async function handleReservationSubmit(event) {
+    event.preventDefault();
+    setReservationMessage("");
+    setReservationError("");
+
+    if (usingSampleData) {
+      setReservationError(
+        "Reservations are unavailable while showing sample listing details."
+      );
+      return;
+    }
+
+    if (!isAvailable) {
+      setReservationError("This listing is no longer available to reserve.");
+      return;
+    }
+
+    if (!isReservationQuantityValid) {
+      setReservationError(
+        `Please enter a whole number between 1 and ${numericAvailableQuantity}.`
+      );
+      return;
+    }
+
+    setIsReserving(true);
+
+    try {
+      await createReservation({
+        listingId: food.id,
+        userName: DEMO_USER_NAME,
+        quantity: numericReservationQuantity,
+      });
+
+      setFood((currentFood) => ({
+        ...currentFood,
+        remainingQuantity:
+          numericAvailableQuantity - numericReservationQuantity,
+      }));
+      setReservationQuantity("1");
+      setReservationMessage(
+        "Reservation created successfully. Please collect it before the listed deadline."
+      );
+    } catch (requestError) {
+      setReservationError(
+        requestError.message ||
+          "We couldn't create this reservation. The available quantity may have changed."
+      );
+    } finally {
+      setIsReserving(false);
+    }
+  }
 
   return (
     <main className="food-details-page">
@@ -265,14 +336,64 @@ export default function FoodDetails({ foodId }) {
                 Explore more food
               </a>
 
-              <button
-                type="button"
-                className="details-reserve-button"
-                disabled
+              <form
+                className="details-reservation-form"
+                onSubmit={handleReservationSubmit}
               >
-                {isAvailable ? "Reserve Food — Coming Soon" : "Unavailable"}
-              </button>
+                <label htmlFor="reservation-quantity">
+                  Quantity to reserve
+                </label>
+                <span className="details-available-quantity">
+                  {isAvailable
+                    ? `${numericAvailableQuantity} available`
+                    : "No quantity available"}
+                </span>
+                <div className="details-reservation-controls">
+                  <input
+                    id="reservation-quantity"
+                    type="number"
+                    min="1"
+                    max={numericAvailableQuantity > 0 ? numericAvailableQuantity : undefined}
+                    step="1"
+                    value={reservationQuantity}
+                    onChange={(event) => {
+                      setReservationQuantity(event.target.value);
+                      setReservationMessage("");
+                      setReservationError("");
+                    }}
+                    disabled={!isAvailable || usingSampleData || isReserving}
+                  />
+                  <button
+                    type="submit"
+                    className="details-reserve-button"
+                    disabled={
+                      !isAvailable ||
+                      usingSampleData ||
+                      isReserving ||
+                      !isReservationQuantityValid
+                    }
+                  >
+                    {isReserving
+                      ? "Reserving..."
+                      : isAvailable
+                        ? "Reserve Food"
+                        : "Unavailable"}
+                  </button>
+                </div>
+              </form>
             </div>
+
+            {reservationMessage && (
+              <p className="details-reservation-message" role="status">
+                {reservationMessage}
+              </p>
+            )}
+
+            {reservationError && (
+              <p className="details-reservation-error" role="alert">
+                {reservationError}
+              </p>
+            )}
           </div>
         </section>
       </div>

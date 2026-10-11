@@ -225,8 +225,75 @@
   border-color: var(--color-primary);
   background: var(--color-primary);
   color: white;
+  cursor: pointer;
+}
+
+.details-reserve-button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.details-reserve-button:disabled {
   cursor: not-allowed;
   opacity: 0.65;
+}
+
+.details-reservation-form {
+  display: flex;
+  min-width: min(100%, 300px);
+  flex-direction: column;
+  gap: 6px;
+}
+
+.details-reservation-form label {
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.details-available-quantity {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.details-reservation-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 3px;
+}
+
+.details-reservation-controls input {
+  width: 90px;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.details-reservation-controls input:focus {
+  border-color: var(--color-primary);
+  outline: 3px solid rgba(70, 102, 83, 0.08);
+}
+
+.details-reservation-message,
+.details-reservation-error {
+  margin: 14px 0 0;
+  padding: 11px 14px;
+  border-radius: var(--radius-button);
+  font-size: 13px;
+}
+
+.details-reservation-message {
+  background: #e6f4e8;
+  color: #28683b;
+}
+
+.details-reservation-error {
+  background: #fff5f3;
+  color: #a13f34;
 }
 
 .food-not-found {
@@ -287,6 +354,19 @@
 
   .details-back-button,
   .details-reserve-button {
+    width: 100%;
+  }
+
+  .details-reservation-form {
+    width: 100%;
+  }
+
+  .details-reservation-controls {
+    flex-direction: column;
+  }
+
+  .details-reservation-controls input,
+  .details-reservation-controls .details-reserve-button {
     width: 100%;
   }
 }
