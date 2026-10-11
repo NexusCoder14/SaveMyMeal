@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import FoodCard from "../components/FoodCard";
+import { getListings } from "../services/listingService";
 import "./BrowseFood.css";
 
 const sampleFoods = [
@@ -88,30 +89,81 @@ export default function BrowseFood() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
+  const [foods, setFoods] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [usingSampleData, setUsingSampleData] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchFoods() {
+      try {
+        setIsLoading(true);
+
+        const listings = await getListings();
+
+        if (isMounted) {
+          setFoods(listings);
+          setUsingSampleData(false);
+        }
+      } catch (error) {
+        console.warn(
+          "Backend unavailable. Using sample food listings for development.",
+          error
+        );
+
+        if (isMounted) {
+          setFoods(sampleFoods);
+          setUsingSampleData(true);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    fetchFoods();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const filteredFoods = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
-    return sampleFoods.filter((food) => {
+    return foods.filter((food) => {
       const matchesSearch = [
         food.foodName,
         food.description,
         food.category,
         food.pickupLocation,
-      ].some((value) => value.toLowerCase().includes(normalizedSearch));
+      ].some((value) =>
+        String(value ?? "").toLowerCase().includes(normalizedSearch)
+      );
+
+      const availableQuantity =
+        food.remainingQuantity ?? food.quantity ?? 0;
 
       const matchesCategory =
         selectedCategory === "All" ||
         food.category === selectedCategory;
 
       const isAvailable =
-        food.remainingQuantity > 0 &&
-        food.status !== "Unavailable" &&
-        food.status !== "Collected" &&
-        food.status !== "Reserved";
+        Number(availableQuantity) > 0 &&
+        !["Unavailable", "Collected", "Reserved"].includes(
+          food.status
+        );
 
       return matchesSearch && matchesCategory && isAvailable;
     });
-  }, [searchTerm, selectedCategory]);
+  }, [foods, searchTerm, selectedCategory]);
+
+  function clearFilters() {
+    setSearchTerm("");
+    setSelectedCategory("All");
+  }
 
   return (
     <main className="browse-page">
@@ -143,8 +195,11 @@ export default function BrowseFood() {
           </div>
 
           <span className="browse-result-count" aria-live="polite">
-            {filteredFoods.length}{" "}
-            {filteredFoods.length === 1 ? "listing" : "listings"} available
+            {isLoading
+              ? "Loading listings..."
+              : `${filteredFoods.length} ${
+                  filteredFoods.length === 1 ? "listing" : "listings"
+                } available`}
           </span>
         </div>
 
@@ -164,7 +219,18 @@ export default function BrowseFood() {
           ))}
         </div>
 
-        {filteredFoods.length > 0 ? (
+        {usingSampleData && !isLoading && (
+          <p className="sample-data-notice" role="status">
+            Showing sample listings while the backend is unavailable.
+          </p>
+        )}
+
+        {isLoading ? (
+          <div className="browse-empty-state" role="status">
+            <h2>Finding shared food...</h2>
+            <p>Please wait while we load available listings.</p>
+          </div>
+        ) : filteredFoods.length > 0 ? (
           <div className="food-grid">
             {filteredFoods.map((food) => (
               <FoodCard key={food.id} food={food} />
@@ -177,19 +243,16 @@ export default function BrowseFood() {
             <h2>No food found just yet</h2>
 
             <p>
-              Try a different search or choose another category to
-              explore available listings.
+              {foods.length === 0
+                ? "There are no food listings to display right now. Please check back later."
+                : "Try a different search or choose another category to explore available listings."}
             </p>
 
-            <button
-              type="button"
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedCategory("All");
-              }}
-            >
-              Clear filters
-            </button>
+            {(searchTerm || selectedCategory !== "All") && (
+              <button type="button" onClick={clearFilters}>
+                Clear filters
+              </button>
+            )}
           </div>
         )}
       </section>

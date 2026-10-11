@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { getListingById } from "../services/listingService";
 import "./FoodDetails.css";
 
 const sampleFoods = [
@@ -82,16 +84,77 @@ const sampleFoods = [
 ];
 
 export default function FoodDetails({ foodId }) {
-  const food = sampleFoods.find(
-    (item) => String(item.id) === String(foodId)
-  );
+  const [food, setFood] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [usingSampleData, setUsingSampleData] = useState(false);
+  const [error, setError] = useState("");
 
-  if (!food) {
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchFood() {
+      setIsLoading(true);
+      setError("");
+      setFood(null);
+      setUsingSampleData(false);
+
+      try {
+        const listing = await getListingById(foodId);
+
+        if (isMounted) {
+          setFood(listing);
+        }
+      } catch (err) {
+        const sampleFood = sampleFoods.find(
+          (item) => String(item.id) === String(foodId)
+        );
+
+        if (isMounted) {
+          if (sampleFood) {
+            setFood(sampleFood);
+            setUsingSampleData(true);
+          } else {
+            setError(
+              "We couldn't load this listing from the backend. Please try again when the service is available."
+            );
+          }
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    if (foodId === undefined || foodId === null || foodId === "") {
+      setError("A valid food listing ID is required.");
+      setIsLoading(false);
+    } else {
+      fetchFood();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [foodId]);
+
+  if (isLoading) {
+    return (
+      <main className="food-details-page">
+        <div className="food-not-found" role="status">
+          <h1>Finding your food listing...</h1>
+          <p>Please wait while we load the details.</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error || !food) {
     return (
       <main className="food-details-page">
         <div className="food-not-found">
-          <h1>Food listing not found</h1>
-          <p>We couldn't find this listing.</p>
+          <h1>Food listing unavailable</h1>
+          <p>{error || "We couldn't find this listing."}</p>
           <a href="/browse" className="details-back-button">
             ← Back to Browse Food
           </a>
@@ -100,10 +163,10 @@ export default function FoodDetails({ foodId }) {
     );
   }
 
-  const availableQuantity = food.remainingQuantity ?? food.quantity;
+  const availableQuantity = food.remainingQuantity ?? food.quantity ?? 0;
 
   const isAvailable =
-    availableQuantity > 0 &&
+    Number(availableQuantity) > 0 &&
     !["Unavailable", "Collected", "Reserved"].includes(food.status);
 
   return (
@@ -141,7 +204,9 @@ export default function FoodDetails({ foodId }) {
 
             <h1>{food.foodName}</h1>
 
-            <p className="details-description">{food.description}</p>
+            <p className="details-description">
+              {food.description || "No description provided."}
+            </p>
 
             <div className="details-info-grid">
               <div className="details-info-item">
@@ -158,7 +223,7 @@ export default function FoodDetails({ foodId }) {
                 <span className="details-info-icon">📍</span>
                 <div>
                   <span className="details-info-label">Pickup location</span>
-                  <strong>{food.pickupLocation}</strong>
+                  <strong>{food.pickupLocation || "Not specified"}</strong>
                 </div>
               </div>
 
@@ -166,7 +231,9 @@ export default function FoodDetails({ foodId }) {
                 <span className="details-info-icon">🕒</span>
                 <div>
                   <span className="details-info-label">Collect before</span>
-                  <strong>{food.collectionDeadline}</strong>
+                  <strong>
+                    {food.collectionDeadline || "Not specified"}
+                  </strong>
                 </div>
               </div>
 
@@ -174,7 +241,7 @@ export default function FoodDetails({ foodId }) {
                 <span className="details-info-icon">💚</span>
                 <div>
                   <span className="details-info-label">Shared by</span>
-                  <strong>{food.donorName}</strong>
+                  <strong>{food.donorName || "Community donor"}</strong>
                 </div>
               </div>
             </div>
@@ -186,6 +253,12 @@ export default function FoodDetails({ foodId }) {
                 and helping someone in our community.
               </p>
             </div>
+
+            {usingSampleData && (
+              <p className="sample-data-notice" role="status">
+                Showing sample details while the backend is unavailable.
+              </p>
+            )}
 
             <div className="details-actions">
               <a href="/browse" className="details-back-button">
