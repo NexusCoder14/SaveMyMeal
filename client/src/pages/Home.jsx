@@ -61,6 +61,67 @@ export default function Home() {
           
         </div>
       </section>
+      <section className="how-it-works">
+  <div className="how-it-works-heading">
+    <span className="section-eyebrow">SIMPLE BY NATURE</span>
+
+    <h2>
+      A little sharing goes <span>a long way.</span>
+    </h2>
+
+    <p>
+      Making a difference doesn't have to be complicated.
+      It starts with three simple steps.
+    </p>
+  </div>
+
+  <div className="steps-grid">
+    <article className="step-card">
+      <span className="step-number">01</span>
+
+      <div className="step-icon" aria-hidden="true">
+        ♡
+      </div>
+
+      <h3>Share</h3>
+
+      <p>
+        Have extra food? Share what you can so it finds
+        someone who needs it.
+      </p>
+    </article>
+
+    <article className="step-card">
+      <span className="step-number">02</span>
+
+      <div className="step-icon" aria-hidden="true">
+        ⌕
+      </div>
+
+      <h3>Discover</h3>
+
+      <p>
+        Explore available food in your community and
+        find something that works for you.
+      </p>
+    </article>
+
+    <article className="step-card">
+      <span className="step-number">03</span>
+
+      <div className="step-icon" aria-hidden="true">
+        →
+      </div>
+
+      <h3>Collect</h3>
+
+      <p>
+        Reserve what you need and arrange collection
+        with the person sharing it.
+      </p>
+    </article>
+  </div>
+</section>
     </main>
   );
 }

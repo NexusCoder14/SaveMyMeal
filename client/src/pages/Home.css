@@ -352,3 +352,137 @@
 
   
 }
+
+/* 
+   HOW IT WORKS
+ */
+
+.how-it-works {
+  padding: 80px 24px 100px;
+
+  background-color: #f1f3eb;
+}
+
+.how-it-works-heading {
+  max-width: 620px;
+  margin: 0 auto 48px;
+
+  text-align: center;
+}
+
+.section-eyebrow {
+  color: var(--color-primary);
+
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 2px;
+}
+
+.how-it-works-heading h2 {
+  margin: 14px 0 12px;
+
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(32px, 4vw, 44px);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -1px;
+}
+
+.how-it-works-heading h2 span {
+  color: var(--color-primary);
+}
+
+.how-it-works-heading > p {
+  max-width: 480px;
+  margin: 0 auto;
+
+  color: var(--color-text-muted);
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+/* Three steps */
+
+.steps-grid {
+  width: min(100%, 1050px);
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.step-card {
+  position: relative;
+
+  padding: 30px 26px;
+
+  border: 1px solid rgba(70, 102, 83, 0.09);
+  border-radius: var(--radius-card);
+
+  background-color: var(--color-surface);
+}
+
+.step-number {
+  position: absolute;
+  top: 22px;
+  right: 24px;
+
+  color: #b7c4b5;
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.step-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 22px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 14px;
+  background-color: var(--color-sage);
+  color: var(--color-primary);
+
+  font-size: 27px;
+}
+
+.step-card h3 {
+  margin: 0 0 10px;
+
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 650;
+}
+
+.step-card p {
+  margin: 0;
+
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+/* Responsive layout */
+
+@media (max-width: 700px) {
+  .how-it-works {
+    padding: 64px 20px 72px;
+  }
+
+  .steps-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .step-card {
+    padding: 26px 24px;
+  }
+
+  .how-it-works-heading {
+    margin-bottom: 36px;
+  }
+}
