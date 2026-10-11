@@ -1,0 +1,272 @@
+/* 
+   BROWSE FOOD PAGE
+*/
+
+.browse-page {
+  min-height: 100vh;
+  padding-bottom: 80px;
+  background-color: var(--color-background);
+}
+
+/* Page heading */
+
+.browse-header {
+  padding: 72px 24px 64px;
+  text-align: center;
+  background-color: #f1f3eb;
+}
+
+.browse-eyebrow {
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 2px;
+}
+
+.browse-header h1 {
+  max-width: 850px;
+  margin: 18px auto 14px;
+
+  color: var(--color-text);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(36px, 5vw, 54px);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -1.5px;
+}
+
+.browse-header h1 span {
+  color: var(--color-primary);
+}
+
+.browse-header > p {
+  max-width: 590px;
+  margin: 0 auto;
+
+  color: var(--color-text-muted);
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+/* Main content */
+
+.browse-content {
+  width: min(1120px, calc(100% - 48px));
+  margin: 0 auto;
+  padding-top: 42px;
+}
+
+/* Search toolbar */
+
+.browse-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.browse-search {
+  width: min(100%, 540px);
+  min-height: 50px;
+  padding: 0 16px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  background-color: var(--color-surface);
+}
+
+.browse-search > span {
+  color: var(--color-primary);
+  font-size: 25px;
+}
+
+.browse-search input {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+
+  background: transparent;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.browse-search input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.browse-search:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(70, 102, 83, 0.08);
+}
+
+.browse-result-count {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+/* Category filters */
+
+.category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  margin: 26px 0 32px;
+}
+
+.category-filter {
+  padding: 10px 17px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+.category-filter:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.category-filter.active {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.category-filter:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+/* Food card grid */
+
+.food-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 24px;
+}
+
+/* Empty state */
+
+.browse-empty-state {
+  padding: 72px 24px;
+  text-align: center;
+}
+
+.browse-empty-state > span {
+  color: var(--color-primary);
+  font-size: 42px;
+}
+
+.browse-empty-state h2 {
+  margin: 16px 0 10px;
+
+  color: var(--color-text);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+  font-weight: 500;
+}
+
+.browse-empty-state p {
+  max-width: 420px;
+  margin: 0 auto 22px;
+
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.browse-empty-state button {
+  padding: 11px 18px;
+
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-button);
+
+  background-color: var(--color-primary);
+  color: white;
+
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.browse-empty-state button:hover {
+  background-color: var(--color-primary-hover);
+}
+
+/* Responsive layout */
+
+@media (max-width: 950px) {
+  .food-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (max-width: 650px) {
+  .browse-header {
+    padding: 54px 20px 46px;
+  }
+
+  .browse-header h1 {
+    font-size: 37px;
+    letter-spacing: -1px;
+  }
+
+  .browse-header > p {
+    font-size: 14px;
+  }
+
+  .browse-content {
+    width: calc(100% - 36px);
+    padding-top: 28px;
+  }
+
+  .browse-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .browse-search {
+    width: 100%;
+  }
+
+  .browse-result-count {
+    align-self: flex-end;
+  }
+
+  .category-filters {
+    gap: 8px;
+    margin: 22px 0 26px;
+  }
+
+  .category-filter {
+    padding: 9px 13px;
+    font-size: 11px;
+  }
+
+  .food-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}

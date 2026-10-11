@@ -1,42 +1,61 @@
 import "./Navbar.css";
 
 export default function Navbar() {
+  const currentPath = window.location.pathname;
+
   return (
     <header className="site-header">
-      <nav className="navbar container" aria-label="Main navigation">
-        {/* Brand */}
-        <a className="navbar-brand" href="/" aria-label="SaveMyMeal home">
-          <span className="brand-icon" aria-hidden="true">
-            ♡
-          </span>
-
+      <nav className="navbar container">
+        {/* Logo */}
+        <a href="/" className="navbar-brand">
+          <span className="brand-icon">♡</span>
           <span className="brand-name">
             SaveMy<span>Meal</span>
           </span>
         </a>
 
-        {/* Navigation links */}
+        {/* Navigation Links */}
         <div className="navbar-links">
-          <a className="nav-link nav-link-active" href="/">
+          <a
+            href="/"
+            className={`nav-link ${
+              currentPath === "/" ? "nav-link-active" : ""
+            }`}
+          >
             Home
           </a>
 
-          <a className="nav-link" href="/browse">
+          <a
+            href="/browse"
+            className={`nav-link ${
+              currentPath === "/browse" ? "nav-link-active" : ""
+            }`}
+          >
             Browse Food
           </a>
 
-          <a className="nav-link" href="/add-food">
+          <a
+            href="/add-food"
+            className={`nav-link ${
+              currentPath === "/add-food" ? "nav-link-active" : ""
+            }`}
+          >
             Share Food
           </a>
 
-          <a className="nav-link" href="/reservations">
+          <a
+            href="/reservations"
+            className={`nav-link ${
+              currentPath === "/reservations" ? "nav-link-active" : ""
+            }`}
+          >
             My Reservations
           </a>
         </div>
 
-        {/* Primary action */}
-        <a className="navbar-cta" href="/browse">
-          Find Food <span aria-hidden="true">↗</span>
+        {/* Call to Action */}
+        <a href="/browse" className="navbar-cta">
+          Find Food
         </a>
       </nav>
     </header>
