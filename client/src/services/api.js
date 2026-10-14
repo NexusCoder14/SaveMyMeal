@@ -1,9 +1,12 @@
-const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"
-).replace(/\/+$/, "");
+const API_BASE_URL = String(
+  import.meta.env.VITE_API_BASE_URL ||
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:3001/api"
+).trim().replace(/\/+$/, "");
 
 export async function apiRequest(endpoint, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const cleanedEndpoint = String(endpoint || "").trim();
+  const response = await fetch(`${API_BASE_URL}${cleanedEndpoint}`, {
     ...options,
     headers: {
       ...(options.body ? { "Content-Type": "application/json" } : {}),
