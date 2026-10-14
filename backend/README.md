@@ -14,7 +14,9 @@ This module provides the independent backend foundation for:
 - **Runtime**: Node.js (CommonJS)
 - **Framework**: Express.js
 - **Database**: SQLite3 (`backend/data/savemymeal.db`, excluded from Git)
-- **CORS**: Configured for Vite React (`http://localhost:5173`) and CRA (`http://localhost:3000`)
+- **CORS**: Configured for local development origins and the deployed frontend
+  (`https://savemymeal-frontend.onrender.com`); requests without an `Origin`
+  header are also supported for curl and server-to-server tools
 - **Port**: `http://localhost:3001` (by default)
 
 ---

@@ -299,8 +299,50 @@ async function runTests() {
       'Access-Control-Allow-Origin header set for http://localhost:5173'
     );
 
+    console.log('\n[Test 16] Production CORS Origin');
+    const resProductionCors = await makeRequest({
+      method: 'GET',
+      path: '/api/health',
+      headers: { Origin: 'https://savemymeal-frontend.onrender.com' }
+    });
+    assert(resProductionCors.statusCode === 200, 'Production-origin request returns 200 OK');
+    assert(
+      resProductionCors.headers['access-control-allow-origin'] ===
+        'https://savemymeal-frontend.onrender.com',
+      'Access-Control-Allow-Origin header set for production frontend'
+    );
+
+    console.log('\n[Test 17] CORS Preflight');
+    const resPreflight = await makeRequest({
+      method: 'OPTIONS',
+      path: '/api/reservations',
+      headers: {
+        Origin: 'https://savemymeal-frontend.onrender.com',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'Content-Type'
+      }
+    });
+    assert(resPreflight.statusCode === 204, 'Allowed preflight returns 204');
+    assert(
+      resPreflight.headers['access-control-allow-origin'] ===
+        'https://savemymeal-frontend.onrender.com',
+      'Preflight includes production Access-Control-Allow-Origin header'
+    );
+
+    console.log('\n[Test 18] Rejected CORS Origin');
+    const resRejectedCors = await makeRequest({
+      method: 'GET',
+      path: '/api/health',
+      headers: { Origin: 'https://not-allowed.example.com' }
+    });
+    assert(resRejectedCors.statusCode !== 500, 'Rejected origin does not produce HTTP 500');
+    assert(
+      !resRejectedCors.headers['access-control-allow-origin'],
+      'Rejected origin receives no Access-Control-Allow-Origin header'
+    );
+
     console.log('\n====================================================');
-    console.log(' ALL 15 AUTOMATED TESTS PASSED SUCCESSFULLY! ');
+    console.log(' ALL 18 AUTOMATED TESTS PASSED SUCCESSFULLY! ');
     console.log('====================================================\n');
   } catch (err) {
     console.error('Test Suite Failed:', err);

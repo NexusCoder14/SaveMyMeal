@@ -1,7 +1,7 @@
 /**
  * SaveMyMeal - Main Server
  * Module D: Backend & Database Foundation
- * Runs independently on port 3001 with CORS for React (port 5173 / 3000)
+ * Runs independently on port 3001 with CORS for local and deployed React clients
  */
 
 const express = require('express');
@@ -18,23 +18,26 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:3000',
-  'http://127.0.0.1:3000'
+  'http://127.0.0.1:3000',
+  'https://savemymeal-frontend.onrender.com'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.CORS_ALLOW_ALL === 'true') {
+    if (allowedOrigins.indexOf(origin) !== -1) {
       return callback(null, true);
     }
     // Allow any localhost dev port
     if (/^http:\/\/localhost:\d+$/.test(origin) || /^http:\/\/127\.0\.0\.1:\d+$/.test(origin)) {
       return callback(null, true);
     }
-    return callback(new Error('Not allowed by CORS'));
+    // Reject without throwing so disallowed origins do not become HTTP 500s.
+    return callback(null, false);
   },
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204
 }));
 
 // Parse JSON request bodies
