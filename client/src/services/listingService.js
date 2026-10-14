@@ -7,13 +7,8 @@ import { apiRequest } from "./api";
 export async function getListings() {
   const data = await apiRequest("/listings");
 
-  // Support a direct array response as well.
-  if (Array.isArray(data)) {
-    return data;
-  }
-
-  if (data && Array.isArray(data.listings)) {
-    return data.listings;
+  if (data && data.success === true && Array.isArray(data.data)) {
+    return data.data;
   }
 
   throw new Error("Invalid response received while fetching food listings.");
@@ -32,14 +27,26 @@ export async function getListingById(id) {
     `/listings/${encodeURIComponent(id)}`
   );
 
-  if (data && data.listing && typeof data.listing === "object") {
-    return data.listing;
-  }
-
-  // Also support an API returning the listing directly.
-  if (data && data.id !== undefined) {
-    return data;
+  if (data && data.success === true && data.data && typeof data.data === "object") {
+    return data.data;
   }
 
   throw new Error("Invalid response received while fetching the food listing.");
+}
+
+export async function createListing(listing) {
+  if (!listing || typeof listing !== "object") {
+    throw new Error("A valid food listing is required.");
+  }
+
+  const data = await apiRequest("/listings", {
+    method: "POST",
+    body: JSON.stringify(listing),
+  });
+
+  if (data && data.success === true && data.data && typeof data.data === "object") {
+    return data.data;
+  }
+
+  throw new Error("Invalid response received while creating the food listing.");
 }

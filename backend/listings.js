@@ -14,6 +14,57 @@ const router = express.Router();
  */
 const VALID_LISTING_STATUSES = ['Available', 'Partially Reserved', 'Reserved', 'Collected', 'Unavailable'];
 
+function parseDeadline(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?$/.exec(value);
+  if (!match) {
+    return null;
+  }
+
+  const [, yearText, monthText, dayText, hourText, minuteText] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+  const date = new Date(year, month - 1, day, hour, minute);
+
+  if (
+    year < 1000 ||
+    year > 9999 ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    hour > 23 ||
+    minute > 59 ||
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day ||
+    date.getHours() !== hour ||
+    date.getMinutes() !== minute
+  ) {
+    return null;
+  }
+
+  return date;
+}
+
+function isValidFutureDeadline(value) {
+  const parsed = parseDeadline(value);
+  return parsed !== null && parsed > new Date();
+}
+
+function isWithinListingDateRange(value) {
+  const parsed = parseDeadline(value);
+  if (!parsed) {
+    return false;
+  }
+
+  const now = new Date();
+  const maximum = new Date(now);
+  maximum.setFullYear(maximum.getFullYear() + 1);
+  return parsed >= now && parsed <= maximum;
+}
+
 /**
  * GET /api/listings
  * Browse food listings with optional query filtering
@@ -68,8 +119,8 @@ router.get('/', (req, res) => {
  * Retrieve a single food listing by ID
  */
 router.get('/:id', (req, res) => {
-  const listingId = parseInt(req.params.id, 10);
-  if (isNaN(listingId) || listingId <= 0) {
+  const listingId = Number(req.params.id);
+  if (!Number.isInteger(listingId) || listingId <= 0) {
     return res.status(400).json({
       success: false,
       message: 'Invalid listing ID provided'
@@ -139,9 +190,14 @@ router.post('/', (req, res) => {
   }
   if (!collectionDeadline || typeof collectionDeadline !== 'string' || !collectionDeadline.trim()) {
     errors.push('collectionDeadline is required.');
+  } else if (!isWithinListingDateRange(collectionDeadline.trim())) {
+    errors.push('Choose a collection deadline between now and one year from today.');
   }
   if (!donorName || typeof donorName !== 'string' || !donorName.trim()) {
     errors.push('donorName is required.');
+  }
+  if (description !== undefined && typeof description !== 'string') {
+    errors.push('description must be a string.');
   }
 
   if (errors.length > 0) {
@@ -210,8 +266,8 @@ router.post('/', (req, res) => {
  * Edit listing details or status (e.g. mark Collected or Unavailable)
  */
 router.patch('/:id', (req, res) => {
-  const listingId = parseInt(req.params.id, 10);
-  if (isNaN(listingId) || listingId <= 0) {
+  const listingId = Number(req.params.id);
+  if (!Number.isInteger(listingId) || listingId <= 0) {
     return res.status(400).json({
       success: false,
       message: 'Invalid listing ID provided'
@@ -243,6 +299,14 @@ router.patch('/:id', (req, res) => {
       status
     } = req.body;
 
+    const textFields = [foodName, description, category, pickupLocation, collectionDeadline, donorName];
+    if (textFields.some((value) => value !== undefined && typeof value !== 'string')) {
+      return res.status(400).json({
+        success: false,
+        message: 'Listing text fields must be strings.'
+      });
+    }
+
     if (status && !VALID_LISTING_STATUSES.includes(status)) {
       return res.status(400).json({
         success: false,
@@ -257,6 +321,20 @@ router.patch('/:id', (req, res) => {
     const updatedCollectionDeadline = collectionDeadline !== undefined ? collectionDeadline.trim() : existing.collectionDeadline;
     const updatedDonorName = donorName !== undefined ? donorName.trim() : existing.donorName;
     const updatedStatus = status !== undefined ? status : existing.status;
+
+    if (
+      typeof updatedFoodName !== 'string' || !updatedFoodName ||
+      typeof updatedCategory !== 'string' || !updatedCategory ||
+      typeof updatedPickupLocation !== 'string' || !updatedPickupLocation ||
+      typeof updatedCollectionDeadline !== 'string' ||
+      (collectionDeadline !== undefined && !isWithinListingDateRange(updatedCollectionDeadline)) ||
+      typeof updatedDonorName !== 'string' || !updatedDonorName
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Listing fields must be non-empty and collectionDeadline must be a valid future date and time.'
+      });
+    }
 
     const updateSql = `
       UPDATE listings SET
@@ -305,8 +383,8 @@ router.patch('/:id', (req, res) => {
  * Remove listing only if it has no associated reservations
  */
 router.delete('/:id', (req, res) => {
-  const listingId = parseInt(req.params.id, 10);
-  if (isNaN(listingId) || listingId <= 0) {
+  const listingId = Number(req.params.id);
+  if (!Number.isInteger(listingId) || listingId <= 0) {
     return res.status(400).json({
       success: false,
       message: 'Invalid listing ID provided'

@@ -5,91 +5,9 @@ import "./FoodDetails.css";
 
 const DEMO_USER_NAME = "Demo User";
 
-const sampleFoods = [
-  {
-    id: 1,
-    foodName: "Fresh Vegetable Sandwiches",
-    description:
-      "Freshly prepared vegetable sandwiches, perfect for a quick and filling meal.",
-    category: "Prepared Meals",
-    quantity: 8,
-    remainingQuantity: 8,
-    pickupLocation: "Andheri, Mumbai",
-    collectionDeadline: "Today, 7:00 PM",
-    donorName: "Green Kitchen",
-    status: "Available",
-  },
-  {
-    id: 2,
-    foodName: "Seasonal Fruit Box",
-    description:
-      "A selection of fresh seasonal fruits, packed and ready to be shared.",
-    category: "Fruits",
-    quantity: 5,
-    remainingQuantity: 5,
-    pickupLocation: "Bandra, Mumbai",
-    collectionDeadline: "Today, 6:30 PM",
-    donorName: "Fresh Basket",
-    status: "Available",
-  },
-  {
-    id: 3,
-    foodName: "Homemade Chapatis",
-    description:
-      "Soft, homemade chapatis prepared fresh and available for collection.",
-    category: "Bakery & Breads",
-    quantity: 12,
-    remainingQuantity: 12,
-    pickupLocation: "Dadar, Mumbai",
-    collectionDeadline: "Today, 8:00 PM",
-    donorName: "A Kind Neighbour",
-    status: "Available",
-  },
-  {
-    id: 4,
-    foodName: "Cooked Rice",
-    description:
-      "Freshly cooked rice stored properly and available for timely collection.",
-    category: "Prepared Meals",
-    quantity: 6,
-    remainingQuantity: 6,
-    pickupLocation: "Andheri, Mumbai",
-    collectionDeadline: "Today, 7:30 PM",
-    donorName: "Community Kitchen",
-    status: "Available",
-  },
-  {
-    id: 5,
-    foodName: "Fresh Bread Loaves",
-    description:
-      "Fresh bread loaves available to anyone who can collect them before the deadline.",
-    category: "Bakery & Breads",
-    quantity: 4,
-    remainingQuantity: 4,
-    pickupLocation: "Juhu, Mumbai",
-    collectionDeadline: "Today, 6:00 PM",
-    donorName: "Daily Bakery",
-    status: "Available",
-  },
-  {
-    id: 6,
-    foodName: "Fresh Bananas",
-    description:
-      "Fresh bananas ready to be shared. Please collect them before the listed deadline.",
-    category: "Fruits",
-    quantity: 10,
-    remainingQuantity: 10,
-    pickupLocation: "Vile Parle, Mumbai",
-    collectionDeadline: "Today, 7:00 PM",
-    donorName: "Fruit Corner",
-    status: "Available",
-  },
-];
-
 export default function FoodDetails({ foodId }) {
   const [food, setFood] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [usingSampleData, setUsingSampleData] = useState(false);
   const [error, setError] = useState("");
   const [reservationQuantity, setReservationQuantity] = useState("1");
   const [isReserving, setIsReserving] = useState(false);
@@ -103,7 +21,6 @@ export default function FoodDetails({ foodId }) {
       setIsLoading(true);
       setError("");
       setFood(null);
-      setUsingSampleData(false);
 
       try {
         const listing = await getListingById(foodId);
@@ -115,22 +32,8 @@ export default function FoodDetails({ foodId }) {
           setReservationError("");
         }
       } catch (err) {
-        const sampleFood = sampleFoods.find(
-          (item) => String(item.id) === String(foodId)
-        );
-
         if (isMounted) {
-          if (sampleFood) {
-            setFood(sampleFood);
-            setUsingSampleData(true);
-            setReservationQuantity("1");
-            setReservationMessage("");
-            setReservationError("");
-          } else {
-            setError(
-              "We couldn't load this listing from the backend. Please try again when the service is available."
-            );
-          }
+          setError(err.message || "We couldn't load this listing from the backend.");
         }
       } finally {
         if (isMounted) {
@@ -180,7 +83,9 @@ export default function FoodDetails({ foodId }) {
 
   const isAvailable =
     Number(availableQuantity) > 0 &&
-    !["Unavailable", "Collected", "Reserved"].includes(food.status);
+    !["Unavailable", "Collected", "Reserved"].includes(food.status) &&
+    !Number.isNaN(new Date(food.collectionDeadline).getTime()) &&
+    new Date(food.collectionDeadline) > new Date();
   const numericAvailableQuantity = Number(availableQuantity);
   const numericReservationQuantity = Number(reservationQuantity);
   const isReservationQuantityValid =
@@ -192,13 +97,6 @@ export default function FoodDetails({ foodId }) {
     event.preventDefault();
     setReservationMessage("");
     setReservationError("");
-
-    if (usingSampleData) {
-      setReservationError(
-        "Reservations are unavailable while showing sample listing details."
-      );
-      return;
-    }
 
     if (!isAvailable) {
       setReservationError("This listing is no longer available to reserve.");
@@ -325,12 +223,6 @@ export default function FoodDetails({ foodId }) {
               </p>
             </div>
 
-            {usingSampleData && (
-              <p className="sample-data-notice" role="status">
-                Showing sample details while the backend is unavailable.
-              </p>
-            )}
-
             <div className="details-actions">
               <a href="/browse" className="details-back-button">
                 Explore more food
@@ -361,14 +253,13 @@ export default function FoodDetails({ foodId }) {
                       setReservationMessage("");
                       setReservationError("");
                     }}
-                    disabled={!isAvailable || usingSampleData || isReserving}
+                    disabled={!isAvailable || isReserving}
                   />
                   <button
                     type="submit"
                     className="details-reserve-button"
                     disabled={
                       !isAvailable ||
-                      usingSampleData ||
                       isReserving ||
                       !isReservationQuantityValid
                     }

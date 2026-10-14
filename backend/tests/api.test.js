@@ -71,6 +71,13 @@ function assert(condition, description) {
   console.log(`  ✓ PASS: ${description}`);
 }
 
+function futureDeadline(days = 30) {
+  const deadline = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  deadline.setSeconds(0, 0);
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${deadline.getFullYear()}-${pad(deadline.getMonth() + 1)}-${pad(deadline.getDate())}T${pad(deadline.getHours())}:${pad(deadline.getMinutes())}`;
+}
+
 async function runTests() {
   console.log('====================================================');
   console.log(' Starting Module D Backend Automated Test Suite');
@@ -94,6 +101,17 @@ async function runTests() {
     assert(resListings.body.data[0].foodName !== undefined, 'Listings have foodName field');
     assert(resListings.body.data[0].remainingQuantity !== undefined, 'Listings have remainingQuantity field');
 
+    console.log('\n[Test 2b] Not Found and Invalid ID Responses');
+    const resMissingListing = await makeRequest({ method: 'GET', path: '/api/listings/999999' });
+    assert(resMissingListing.statusCode === 404, 'Missing listing returns 404');
+    assert(resMissingListing.body.success === false, 'Missing listing uses the error envelope');
+    const resInvalidReservation = await makeRequest({
+      method: 'PATCH',
+      path: '/api/reservations/not-an-id',
+      body: { status: 'Cancelled' }
+    });
+    assert(resInvalidReservation.statusCode === 400, 'Invalid reservation ID returns 400');
+
     // 3. Search and category filter
     console.log('\n[Test 3] Filter & Search Listings');
     const resFiltered = await makeRequest({
@@ -112,7 +130,7 @@ async function runTests() {
       category: 'Meals',
       quantity: 5,
       pickupLocation: 'South Cafeteria Stall 3',
-      collectionDeadline: '2026-10-12T20:30:00',
+      collectionDeadline: futureDeadline(),
       donorName: 'Aarav'
     };
     const resCreate = await makeRequest({ method: 'POST', path: '/api/listings', body: newListing });
@@ -131,6 +149,27 @@ async function runTests() {
     });
     assert(resInvalidCreate.statusCode === 400, 'Returns 400 Bad Request');
     assert(resInvalidCreate.body.success === false, 'Returns success: false');
+
+    const invalidDeadlineCases = [
+      '2026-02-30T12:00',
+      '44564-01-01T12:00',
+      `${futureDeadline(366)}`
+    ];
+    for (const collectionDeadline of invalidDeadlineCases) {
+      const response = await makeRequest({
+        method: 'POST',
+        path: '/api/listings',
+        body: { ...newListing, collectionDeadline }
+      });
+      assert(response.statusCode === 400, `Rejects invalid deadline ${collectionDeadline}`);
+    }
+
+    const resInvalidQuantity = await makeRequest({
+      method: 'POST',
+      path: '/api/reservations',
+      body: { listingId: 1, userName: 'Rahul', quantity: 0 }
+    });
+    assert(resInvalidQuantity.statusCode === 400, 'Invalid reservation quantity returns 400');
 
     // 6. Create reservation and verify quantity deduction
     console.log('\n[Test 6] Reserve Food (POST /api/reservations)');

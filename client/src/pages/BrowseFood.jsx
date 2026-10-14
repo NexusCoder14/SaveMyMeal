@@ -3,87 +3,7 @@ import FoodCard from "../components/FoodCard";
 import { getListings } from "../services/listingService";
 import "./BrowseFood.css";
 
-const sampleFoods = [
-  {
-    id: 1,
-    foodName: "Fresh Vegetable Sandwiches",
-    description:
-      "Freshly prepared vegetable sandwiches, perfect for a quick and wholesome meal.",
-    category: "Prepared Meals",
-    quantity: 8,
-    remainingQuantity: 8,
-    pickupLocation: "Andheri West, Mumbai",
-    collectionDeadline: "Today, 7:00 PM",
-    status: "Available",
-  },
-  {
-    id: 2,
-    foodName: "Seasonal Fruit Box",
-    description:
-      "A selection of fresh seasonal fruits, packed and ready to be shared.",
-    category: "Fruits",
-    quantity: 5,
-    remainingQuantity: 5,
-    pickupLocation: "Vile Parle, Mumbai",
-    collectionDeadline: "Today, 6:00 PM",
-    status: "Available",
-  },
-  {
-    id: 3,
-    foodName: "Homemade Chapatis",
-    description:
-      "Soft, homemade chapatis prepared fresh and available for collection.",
-    category: "Bakery & Breads",
-    quantity: 12,
-    remainingQuantity: 12,
-    pickupLocation: "Santacruz, Mumbai",
-    collectionDeadline: "Today, 8:00 PM",
-    status: "Available",
-  },
-  {
-    id: 4,
-    foodName: "Cooked Rice",
-    description:
-      "Freshly cooked rice that can accompany a meal and help prevent food waste.",
-    category: "Prepared Meals",
-    quantity: 6,
-    remainingQuantity: 6,
-    pickupLocation: "Bandra East, Mumbai",
-    collectionDeadline: "Today, 7:30 PM",
-    status: "Available",
-  },
-  {
-    id: 5,
-    foodName: "Fresh Bread Loaves",
-    description:
-      "Extra bread loaves, stored properly and ready for someone to enjoy.",
-    category: "Bakery & Breads",
-    quantity: 4,
-    remainingQuantity: 4,
-    pickupLocation: "Jogeshwari, Mumbai",
-    collectionDeadline: "Today, 5:30 PM",
-    status: "Available",
-  },
-  {
-    id: 6,
-    foodName: "Fresh Bananas",
-    description:
-      "A bunch of ripe bananas available for collection and sharing.",
-    category: "Fruits",
-    quantity: 10,
-    remainingQuantity: 10,
-    pickupLocation: "Goregaon, Mumbai",
-    collectionDeadline: "Today, 6:30 PM",
-    status: "Available",
-  },
-];
-
-const categories = [
-  "All",
-  "Prepared Meals",
-  "Fruits",
-  "Bakery & Breads",
-];
+const categories = ["All", "Meals", "Snacks", "Bakery", "Fruits", "Vegetables", "Other"];
 
 export default function BrowseFood() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -91,7 +11,7 @@ export default function BrowseFood() {
 
   const [foods, setFoods] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [usingSampleData, setUsingSampleData] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -99,22 +19,17 @@ export default function BrowseFood() {
     async function fetchFoods() {
       try {
         setIsLoading(true);
+        setError("");
 
         const listings = await getListings();
 
         if (isMounted) {
           setFoods(listings);
-          setUsingSampleData(false);
         }
       } catch (error) {
-        console.warn(
-          "Backend unavailable. Using sample food listings for development.",
-          error
-        );
-
         if (isMounted) {
-          setFoods(sampleFoods);
-          setUsingSampleData(true);
+          setFoods([]);
+          setError(error.message || "Could not load listings from the backend.");
         }
       } finally {
         if (isMounted) {
@@ -152,9 +67,9 @@ export default function BrowseFood() {
 
       const isAvailable =
         Number(availableQuantity) > 0 &&
-        !["Unavailable", "Collected", "Reserved"].includes(
-          food.status
-        );
+        !["Unavailable", "Collected", "Reserved"].includes(food.status) &&
+        !Number.isNaN(new Date(food.collectionDeadline).getTime()) &&
+        new Date(food.collectionDeadline) > new Date();
 
       return matchesSearch && matchesCategory && isAvailable;
     });
@@ -219,16 +134,18 @@ export default function BrowseFood() {
           ))}
         </div>
 
-        {usingSampleData && !isLoading && (
-          <p className="sample-data-notice" role="status">
-            Showing sample listings while the backend is unavailable.
-          </p>
-        )}
-
         {isLoading ? (
           <div className="browse-empty-state" role="status">
             <h2>Finding shared food...</h2>
             <p>Please wait while we load available listings.</p>
+          </div>
+        ) : error ? (
+          <div className="browse-empty-state" role="alert">
+            <h2>Unable to load listings</h2>
+            <p>{error}</p>
+            <button type="button" onClick={() => window.location.reload()}>
+              Try again
+            </button>
           </div>
         ) : filteredFoods.length > 0 ? (
           <div className="food-grid">

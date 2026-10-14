@@ -27,6 +27,11 @@ function calculateListingStatus(remaining, total) {
   return 'Available';
 }
 
+function isValidFutureDeadline(value) {
+  const parsed = new Date(value);
+  return !Number.isNaN(parsed.getTime()) && parsed > new Date();
+}
+
 /**
  * GET /api/reservations
  * Fetch reservations with joined listing details (foodName, pickupLocation, status, etc.)
@@ -105,16 +110,16 @@ router.post('/', (req, res) => {
 
   // Validation
   const errors = [];
-  const parsedListingId = parseInt(listingId, 10);
-  const parsedQuantity = parseInt(quantity, 10);
+  const parsedListingId = Number(listingId);
+  const parsedQuantity = Number(quantity);
 
-  if (!listingId || isNaN(parsedListingId) || parsedListingId <= 0) {
+  if (!Number.isInteger(parsedListingId) || parsedListingId <= 0) {
     errors.push('listingId is required and must be a valid positive integer.');
   }
   if (!userName || typeof userName !== 'string' || !userName.trim()) {
     errors.push('userName is required.');
   }
-  if (quantity === undefined || !Number.isInteger(quantity) || parsedQuantity <= 0) {
+  if (!Number.isInteger(parsedQuantity) || parsedQuantity <= 0) {
     errors.push('quantity is required and must be a positive integer greater than 0.');
   }
 
@@ -159,6 +164,14 @@ router.post('/', (req, res) => {
           return res.status(409).json({
             success: false,
             message: `Listing is ${listing.status} and cannot be reserved`
+          });
+        }
+
+        if (!isValidFutureDeadline(listing.collectionDeadline)) {
+          db.run('ROLLBACK;');
+          return res.status(409).json({
+            success: false,
+            message: 'Listing collection deadline has passed or is invalid'
           });
         }
 
@@ -257,8 +270,8 @@ router.post('/', (req, res) => {
  *   - Rejects if already Cancelled or Collected
  */
 router.patch('/:id', (req, res) => {
-  const reservationId = parseInt(req.params.id, 10);
-  if (isNaN(reservationId) || reservationId <= 0) {
+  const reservationId = Number(req.params.id);
+  if (!Number.isInteger(reservationId) || reservationId <= 0) {
     return res.status(400).json({
       success: false,
       message: 'Invalid reservation ID provided'
@@ -328,8 +341,14 @@ router.patch('/:id', (req, res) => {
               });
             }
 
-            const restoredQuantity = listing.remainingQuantity + reservation.quantity;
-            const updatedListingStatus = calculateListingStatus(restoredQuantity, listing.quantity);
+            const restoredQuantity = Math.min(
+              listing.quantity,
+              listing.remainingQuantity + reservation.quantity
+            );
+            const updatedListingStatus =
+              listing.status === 'Unavailable' || listing.status === 'Collected'
+                ? listing.status
+                : calculateListingStatus(restoredQuantity, listing.quantity);
 
             // Update listing
             db.run(

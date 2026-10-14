@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import BrowseFood from "./pages/BrowseFood";
 import FoodDetails from "./pages/FoodDetails";
 import MyReservations from "./pages/MyReservations";
+import AddFood from "./pages/AddFood";
 
 function App() {
   const currentPath = window.location.pathname;
@@ -11,6 +12,8 @@ function App() {
 
   if (currentPath === "/browse") {
     page = <BrowseFood />;
+  } else if (currentPath === "/add-food") {
+    page = <AddFood />;
   } else if (currentPath === "/reservations") {
     page = <MyReservations />;
   } else if (currentPath.startsWith("/food/")) {

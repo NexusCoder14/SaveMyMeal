@@ -32,7 +32,7 @@ function validateQuantity(quantity) {
 
 /**
  * Fetch reservations belonging to a demo user.
- * Expected response: { reservations: [...] }
+ * The backend contract is { success, message, data }.
  */
 export async function getReservations(userName) {
   validateUserName(userName);
@@ -41,8 +41,8 @@ export async function getReservations(userName) {
     `/reservations?userName=${encodeURIComponent(userName.trim())}`
   );
 
-  if (data && Array.isArray(data.reservations)) {
-    return data.reservations;
+  if (data && data.success === true && Array.isArray(data.data)) {
+    return data.data;
   }
 
   throw new Error(
@@ -52,7 +52,7 @@ export async function getReservations(userName) {
 
 /**
  * Create a reservation for a food listing.
- * Expected response: { reservation: {...} }
+ * The backend contract is { success, message, data }.
  */
 export async function createReservation({
   listingId,
@@ -72,8 +72,8 @@ export async function createReservation({
     }),
   });
 
-  if (data && data.reservation && typeof data.reservation === "object") {
-    return data.reservation;
+  if (data && data.success === true && data.data && typeof data.data === "object") {
+    return data.data;
   }
 
   throw new Error(
@@ -83,18 +83,18 @@ export async function createReservation({
 
 /**
  * Cancel an existing reservation.
- * Expected response: { reservation: {...} }
+ * The backend contract is { success, message, data }.
  */
 export async function cancelReservation(reservationId) {
   validateReservationId(reservationId);
 
-  const data = await apiRequest(
-    `/reservations/${encodeURIComponent(reservationId)}/cancel`,
-    { method: "PATCH" }
-  );
+  const data = await apiRequest(`/reservations/${encodeURIComponent(reservationId)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ status: "Cancelled" }),
+  });
 
-  if (data && data.reservation && typeof data.reservation === "object") {
-    return data.reservation;
+  if (data && data.success === true && data.data && typeof data.data === "object") {
+    return data.data;
   }
 
   throw new Error(

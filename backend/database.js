@@ -30,6 +30,12 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
  */
 function initDatabase() {
   return new Promise((resolve, reject) => {
+    const seedDeadline = (hour) => {
+      const deadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      deadline.setHours(hour, 0, 0, 0);
+      return deadline.toISOString();
+    };
+
     db.serialize(() => {
       // 1. Enable Foreign Key Constraints in SQLite
       db.run('PRAGMA foreign_keys = ON;', (err) => {
@@ -103,7 +109,7 @@ function initDatabase() {
               10,
               10,
               'College Canteen Counter 2',
-              '2026-10-12T18:00:00',
+              seedDeadline(18),
               'Meet',
               'Available'
             ],
@@ -114,7 +120,7 @@ function initDatabase() {
               8,
               8,
               'Campus North Bakery Stall',
-              '2026-10-12T19:30:00',
+              seedDeadline(19),
               'Sunita',
               'Available'
             ],
@@ -125,7 +131,7 @@ function initDatabase() {
               6,
               6,
               'Main Dining Hall B',
-              '2026-10-12T20:00:00',
+              seedDeadline(20),
               'Ravi',
               'Available'
             ],
@@ -136,7 +142,7 @@ function initDatabase() {
               12,
               12,
               'Student Activity Center Juice Bar',
-              '2026-10-12T17:00:00',
+              seedDeadline(17),
               'Priya',
               'Available'
             ]

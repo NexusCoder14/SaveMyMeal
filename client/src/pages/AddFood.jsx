@@ -10,12 +10,57 @@ const initialForm = {
   category: "Meals",
   quantity: "",
   pickupLocation: "",
-  collectionDeadline: "",
+  collectionDate: "",
+  collectionTime: "",
   donorName: "",
 };
 
+function formatDateInput(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getDateLimits() {
+  const today = new Date();
+  const maximum = new Date(today);
+  maximum.setFullYear(maximum.getFullYear() + 1);
+
+  return {
+    minimum: formatDateInput(today),
+    maximum: formatDateInput(maximum),
+  };
+}
+
+function isValidCalendarDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return (
+    year >= 1000 &&
+    year <= 9999 &&
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  );
+}
+
+function isValidClockTime(value) {
+  if (!/^\d{2}:\d{2}$/.test(value)) {
+    return false;
+  }
+
+  const [hours, minutes] = value.split(":").map(Number);
+  return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
+}
+
 function validateForm(values) {
   const errors = {};
+  const { minimum, maximum } = getDateLimits();
 
   if (!values.foodName.trim()) {
     errors.foodName = "Food name is required.";
@@ -35,13 +80,30 @@ function validateForm(values) {
     errors.pickupLocation = "Pickup location is required.";
   }
 
-  if (!values.collectionDeadline) {
-    errors.collectionDeadline = "Collection deadline is required.";
-  } else {
-    const deadline = new Date(values.collectionDeadline);
-    if (Number.isNaN(deadline.getTime()) || deadline <= new Date()) {
-      errors.collectionDeadline = "Please choose a future date and time.";
-    }
+  if (!values.collectionDate) {
+    errors.collectionDate = "Collection date is required.";
+  } else if (
+    !isValidCalendarDate(values.collectionDate) ||
+    values.collectionDate < minimum ||
+    values.collectionDate > maximum
+  ) {
+    errors.collectionDate =
+      "Choose a collection date between today and one year from today.";
+  }
+
+  if (!values.collectionTime) {
+    errors.collectionTime = "Collection time is required.";
+  } else if (!isValidClockTime(values.collectionTime)) {
+    errors.collectionTime = "Choose a valid collection time.";
+  }
+
+  if (
+    !errors.collectionDate &&
+    !errors.collectionTime &&
+    new Date(`${values.collectionDate}T${values.collectionTime}`) <= new Date()
+  ) {
+    errors.collectionTime =
+      "Choose a collection deadline later than the current time.";
   }
 
   if (!values.donorName.trim()) {
@@ -60,15 +122,26 @@ export default function AddFood() {
 
   function handleChange(event) {
     const { name, value } = event.target;
-
-    setForm((current) => ({
-      ...current,
+    const nextForm = {
+      ...form,
       [name]: value,
-    }));
+    };
+    const nextDeadlineErrors =
+      name === "collectionDate" || name === "collectionTime"
+        ? validateForm(nextForm)
+        : {};
+
+    setForm(nextForm);
 
     setErrors((current) => ({
       ...current,
       [name]: "",
+      ...(name === "collectionDate" || name === "collectionTime"
+        ? {
+            collectionDate: nextDeadlineErrors.collectionDate || "",
+            collectionTime: nextDeadlineErrors.collectionTime || "",
+          }
+        : {}),
     }));
 
     if (successMessage) setSuccessMessage("");
@@ -96,7 +169,7 @@ export default function AddFood() {
         category: form.category.trim(),
         quantity: Number(form.quantity),
         pickupLocation: form.pickupLocation.trim(),
-        collectionDeadline: form.collectionDeadline,
+        collectionDeadline: `${form.collectionDate}T${form.collectionTime}`,
         donorName: form.donorName.trim(),
       };
 
@@ -199,16 +272,31 @@ export default function AddFood() {
         </div>
 
         <div className="field full-width">
-          <label htmlFor="collectionDeadline">Collection deadline *</label>
+          <label htmlFor="collectionDate">Collection date *</label>
           <input
-            id="collectionDeadline"
-            name="collectionDeadline"
-            type="datetime-local"
-            value={form.collectionDeadline}
+            id="collectionDate"
+            name="collectionDate"
+            type="date"
+            min={getDateLimits().minimum}
+            max={getDateLimits().maximum}
+            value={form.collectionDate}
             onChange={handleChange}
-            className={errors.collectionDeadline ? "input-error" : ""}
+            className={errors.collectionDate ? "input-error" : ""}
           />
-          {errors.collectionDeadline && <p className="field-error">{errors.collectionDeadline}</p>}
+          {errors.collectionDate && <p className="field-error">{errors.collectionDate}</p>}
+        </div>
+
+        <div className="field full-width">
+          <label htmlFor="collectionTime">Collection time *</label>
+          <input
+            id="collectionTime"
+            name="collectionTime"
+            type="time"
+            value={form.collectionTime}
+            onChange={handleChange}
+            className={errors.collectionTime ? "input-error" : ""}
+          />
+          {errors.collectionTime && <p className="field-error">{errors.collectionTime}</p>}
         </div>
 
         <div className="form-actions">
